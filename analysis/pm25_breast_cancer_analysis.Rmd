@@ -1,0 +1,355 @@
+---
+title: "Data analysis"
+output: html_document
+date: "2026-02-28"
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE,
+                      warning = FALSE, error = TRUE,
+                      fig.height = 3)
+```
+
+
+
+## R Markdown
+
+```{r}
+ca_counties <- c("Alameda", "Alpine", "Amador", "Butte", "Calaveras", "Colusa",
+                 "Contra Costa", "Del Norte", "El Dorado", "Fresno", "Glenn",
+                 "Humboldt", "Imperial", "Inyo", "Kern", "Kings", "Lake",
+                 "Lassen", "Los Angeles", "Madera", "Marin", "Mariposa",
+                 "Mendocino", "Merced", "Modoc", "Mono", "Monterey", "Napa",
+                 "Nevada", "Orange", "Placer", "Plumas", "Riverside", "Sacramento",
+                 "San Benito", "San Bernardino", "San Diego", "San Francisco",
+                 "San Joaquin", "San Luis Obispo", "San Mateo", "Santa Barbara",
+                 "Santa Clara", "Santa Cruz", "Shasta", "Sierra", "Siskiyou",
+                 "Solano", "Sonoma", "Stanislaus", "Sutter", "Tehama", "Trinity",
+                 "Tulare", "Tuolumne", "Ventura", "Yolo", "Yuba")
+```
+
+```{r}
+library(tidyverse)
+
+cols_needed <- c("State Name", 
+                 "County Name", 
+                 "Year", 
+                 "Parameter Name", 
+                 "Arithmetic Mean", "State Code", "County Code")
+
+pm18 <- read_csv("../data/annual_conc_by_monitor_2018.csv", col_select = all_of(cols_needed)) %>% mutate(year = 2018)
+pm19 <- read_csv("../data/annual_conc_by_monitor_2019.csv", col_select = all_of(cols_needed)) %>% mutate(year = 2019)
+pm20 <- read_csv("../data/annual_conc_by_monitor_2020.csv", col_select = all_of(cols_needed)) %>% mutate(year = 2020)
+pm21 <- read_csv("../data/annual_conc_by_monitor_2021.csv", col_select = all_of(cols_needed)) %>% mutate(year = 2021)
+pm22 <- read_csv("../data/annual_conc_by_monitor_2022.csv", col_select = all_of(cols_needed)) %>% mutate(year = 2022)
+pm_all <- bind_rows(pm18, pm19, pm20, pm21, pm22)
+```
+```{r}
+colnames(pm18)
+```
+```{r}
+pm_ca <- pm_all %>%
+  filter(`Parameter Name` == "PM2.5 - Local Conditions",
+         `State Name` == "California") %>%  select(`State Code`, `County Code`,
+         `County Name`, Year, `Arithmetic Mean`)
+  
+```
+
+```{r}
+library(stringr)
+
+pm_ca <- pm_ca %>%
+  mutate(
+    FIPS = str_c(
+      str_pad(`State Code`, 2, pad = "0"),
+      str_pad(`County Code`, 3, pad = "0")
+    )
+  )
+```
+
+```{r}
+pm_ca <- pm_ca %>%
+  group_by(FIPS, `County Name`, Year) %>%
+  summarise(mean_pm25_year = mean(`Arithmetic Mean`, na.rm = TRUE),
+            .groups = "drop")
+```
+
+
+```{r}
+pm_ca_5yr_avg <- pm_ca %>%
+  group_by(FIPS,`County Name`) %>%
+  summarise(mean_pm25_2018_2022 = mean(mean_pm25_year, na.rm = TRUE),
+            .groups = "drop")
+Air_Pollution_by_County <- pm_ca_5yr_avg
+
+```
+
+```{r}
+pm_ca_2022 <- pm_ca %>% filter(Year == 2022)
+```
+
+
+
+```{r}
+Breast_Cancer_by_County <- read_csv("../data/incd.csv")
+
+```
+
+```{r}
+
+Breast_Cancer_by_County %>% 
+  count(FIPS) %>% 
+  filter(n > 1)
+
+Air_Pollution_by_County %>% 
+  count(FIPS) %>% 
+  filter(n > 1)
+```
+```{r}
+breast_data_unique <- Breast_Cancer_by_County %>% 
+  group_by(FIPS) %>% 
+  slice(1) %>%
+  ungroup()
+
+pollution_data_unique <- Air_Pollution_by_County %>% 
+  group_by(FIPS) %>% 
+  slice(1) %>% 
+  ungroup()
+```
+
+```{r}
+combined_data <- left_join(breast_data_unique, pm_ca_5yr_avg, join_by(FIPS))
+```
+
+```{r}
+combined_data %>% 
+  count(FIPS) %>% 
+  filter(n > 1) 
+```
+
+```{r}
+combined_data <- drop_na(combined_data)
+```
+
+
+
+```{r}
+str(combined_data$`mean_pm25_2018_2022`)
+head(combined_data$`mean_pm25_2018_2022`)
+```
+
+```{r}
+combined_data <- combined_data %>%
+  mutate(
+    `Age-Adjusted Incidence Rate - cases per 100,000` = as.numeric(str_trim(`Age-Adjusted Incidence Rate([rate note]) - cases per 100,000`)) )
+```
+
+
+```{r}
+actual_data <- combined_data %>%
+  select(
+    FIPS,
+    `County Name`,
+    `Age-Adjusted Incidence Rate - cases per 100,000`, `Lower 95% Confidence Interval...5`, `Upper 95% Confidence Interval...6`,
+    mean_pm25_2018_2022, `2023 Rural-Urban Continuum Codes([rural urban note])`, 
+  )
+```
+
+
+```{r}
+ggplot(actual_data, aes(
+  x = mean_pm25_2018_2022,
+  y = `Age-Adjusted Incidence Rate - cases per 100,000`
+)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "red") +
+  labs(
+    x = "Average Air Pollution Level (PM2.5)",
+    y = "Breast Cancer Incidence (per 100,000)",
+    title = "Breast Cancer Rates vs Air Pollution by County (2018 - 2022)"
+  ) +
+  theme_minimal()
+
+ggsave(
+  "../figures/.../breast_cancer_pm25_scatter.png",
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+
+
+```{r}
+
+library(ggrepel)
+```
+
+```{r}
+actual_data %>%
+  filter(mean_pm25_2018_2022 > quantile(mean_pm25_2018_2022, 0.9) |
+        `Age-Adjusted Incidence Rate - cases per 100,000` > quantile(`Age-Adjusted Incidence Rate - cases per 100,000`, 0.9)) -> labeled_counties
+
+```
+
+```{r}
+ggplot(actual_data, aes(
+  x = mean_pm25_2018_2022,
+  y = `Age-Adjusted Incidence Rate - cases per 100,000`
+)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "red") +
+  labs(
+    x = "Average Air Pollution Level (PM2.5)",
+    y = "Breast Cancer Incidence (per 100,000)",
+    title = "Breast Cancer Rates vs Air Pollution by County (2018 - 2022)"
+  ) +
+  theme_minimal() + geom_text_repel(data = labeled_counties,
+                aes(label = `County Name`),
+                size = 3, color = "blue")
+
+ggsave(
+  "../figures/.../breast_cancer_pm25_scatter_labeled.png",
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+
+
+```{r}
+cor(actual_data$`Age-Adjusted Incidence Rate - cases per 100,000`, actual_data$mean_pm25_2018_2022, method = "pearson")
+
+```
+```{r}
+cor.test(actual_data$mean_pm25_2018_2022, actual_data$`Age-Adjusted Incidence Rate - cases per 100,000`)
+```
+
+
+```{r}
+colnames(combined_data)
+```
+
+```{r}
+
+library(sf)
+library(ggplot2)
+library(dplyr)
+library(tigris)
+```
+
+```{r}
+ca_counties <- counties(state = "CA", cb = TRUE, class = "sf")  # sf format
+```
+```{r}
+ca_map_data <- ca_counties %>%
+  left_join(actual_data, by = c("GEOID" = "FIPS"))
+```
+
+```{r}
+ggplot(ca_map_data) +
+  geom_sf(aes(fill = `Age-Adjusted Incidence Rate - cases per 100,000`), color = "black", size = 0.2) +
+  scale_fill_viridis_c(option = "plasma") +
+  labs(title = "Breast Cancer Incidence Across California Counties",
+       fill = "Incidence Rate\n(cases per 100,000)") +
+  theme_minimal()
+
+ggsave(
+  "../figures/.../breast_cancer_california_map.png",
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+```{r}
+ggplot(ca_map_data) +
+  geom_sf(aes(fill = mean_pm25_2018_2022), color = "black", size = 0.2) +
+  scale_fill_viridis_c(option = "magma") +
+  labs(title = "Average PM2.5 Across California Counties",
+       fill = "PM2.5 (µg/m³)") +
+  theme_minimal()
+
+ggsave(
+  "../figures/.../pm25_california_map.png",
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+```{r}
+library(ggplot2)
+ggplot(actual_data, aes(x = mean_pm25_2018_2022, 
+               y = `Age-Adjusted Incidence Rate - cases per 100,000`,
+               color = `2023 Rural-Urban Continuum Codes([rural urban note])`)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  labs(x = "PM2.5 (µg/m³)", y = "Breast Cancer Incidence Rate", color = "Rural-Urban Code", title = "Breast Cancer Rates vs Air Pollution by County (2018 - 2022)")
+
+ggsave(
+  "../figures/.../breast_cancer_pm25_scatter_rural_urban.png",
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+```{r}
+actual_data$`Lower 95% Confidence Interval...5` <- as.numeric(combined_data$`Lower 95% Confidence Interval...5`)
+actual_data$`Upper 95% Confidence Interval...6` <- as.numeric(combined_data$`Upper 95% Confidence Interval...6`)
+```
+
+
+```{r}
+ggplot(actual_data, aes(x = mean_pm25_2018_2022,
+               y = `Age-Adjusted Incidence Rate - cases per 100,000`)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = `Lower 95% Confidence Interval...5`,
+                    ymax = `Upper 95% Confidence Interval...6`), width = 0.2) + labs(
+    x = "Air Pollution Level (PM2.5)",
+    y = "Breast Cancer Incidence (per 100,000)",
+    title = "Breast Cancer Rates vs Air Pollution by County with Error Bars"
+  ) +
+  theme_minimal()
+```
+```{r}
+ggplot(actual_data, aes(x = `2023 Rural-Urban Continuum Codes([rural urban note])`,
+               y = `Age-Adjusted Incidence Rate - cases per 100,000`)) +
+  geom_boxplot() +
+  labs(x = "Rural-Urban Code", y = "Breast Cancer Incidence Rate")
+```
+```{r}
+
+pm_summary <- actual_data %>%
+  group_by(`2023 Rural-Urban Continuum Codes([rural urban note])`) %>%
+  summarise(
+    MeanRate = mean(mean_pm25_2018_2022, na.rm = TRUE),
+    SD = sd(mean_pm25_2018_2022, na.rm = TRUE),
+    N = n()
+  )
+```
+
+```{r}
+ggplot(pm_summary, aes(x = `2023 Rural-Urban Continuum Codes([rural urban note])`, y = MeanRate, fill = `2023 Rural-Urban Continuum Codes([rural urban note])`)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  geom_errorbar(aes(ymin = MeanRate - SD, ymax = MeanRate + SD), width = 0.2) +
+  labs(
+    x = "County Type",
+    y = "Average PM2.5",
+    title = "Comparison of 5 Year Average PM2.5: Urban vs Rural") +
+  scale_fill_manual(name = "Rural vs. Urban", values = c("Urban" = "#1f77b4", "Rural" = "#ff7f0e")) +
+  theme_minimal() + geom_text(aes(label = N, y = MeanRate + SD + 5), size = 3)
+
+ggsave(
+  "../figures/.../rural_urban_pm25.png",
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+```
+
+
+
