@@ -69,7 +69,7 @@ The Pearson correlation between age-adjusted breast cancer incidence rates and f
 r = -0.4136542
 This represents a moderate negative correlation, suggesting that counties with higher average PM2.5 concentrations tended to have lower recorded breast cancer incidence rates in this dataset.
 The analysis produced a p-value below 0.05, indicating that the observed correlation was statistically significant according to the significance threshold used in the analysis.
-These findings rejected the original hypothesis that higher county-level air pollution would be associated with higher breast cancer rates.
+These findings did not support the original hypothesis that higher county-level air pollution would be associated with higher breast cancer rates.
 
 ## Discussion
 
@@ -101,7 +101,7 @@ Several limitations should be considered.
    
 ## Reproducibility
 
-This primary analysis was conducted in R/RStudio using R Markdown. The analysis code, rendered HTML report, and generated figures are included in this repository. There is also a supplementary exploratory mammography analysis in the form of a Excel worksheet.
+This primary analysis was conducted in R/RStudio using R Markdown. The analysis code, rendered HTML report, and generated figures are included in this repository. There is also a supplementary exploratory mammography analysis in the form of an Excel worksheet.
 The EPA AirData files are large datasets and are therefore not stored directly in the repository. Instead, the R Markdown analysis automatically downloads and unzips the required 2018–2022 EPA datasets when they are not already present in the project's data/ directory.
 The breast cancer incidence dataset used in the analysis is included in the repository.
 This structure allows the analysis to be reproduced using the publicly available source data and the included R Markdown code.
@@ -140,4 +140,10 @@ ggplot2
 ggrepel
 sf
 tigris
+
+## Data Sources
+
+- U.S. Environmental Protection Agency (EPA) AirData — annual PM2.5 monitoring data from 2018–2022.
+- National Cancer Institute — State Cancer Profiles, California county-level breast cancer incidence data.
+- County Health Rankings & Roadmaps — county-level mammography screening data used for the supplementary exploratory analysis.
 
