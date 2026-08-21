@@ -85,7 +85,7 @@ The correlation between PM2.5 and mammography screening rates was:
 r = -0.3959 with a p-value of 0.007796.
 
 Mammography rates decreased as air pollution increased, while breast cancer incidence also decreased as mammography rates decreased. This provides one possible explanation for why breast cancer incidence decreased as air pollution increased in the primary analysis.
-However, this exploratory analysis does not establish that differences in screening caused the observed relationship.
+However, this exploratory analysis does not establish that differences in screening caused the observed relationship. This is separate from the primary R Markdown analysis. Instead, it is provided as a supplementary Excel analysis.
 
 Limitations
 
@@ -101,7 +101,7 @@ Several limitations should be considered.
    
 Reproducibility
 
-This analysis was conducted in R/RStudio using R Markdown. The analysis code, rendered HTML report, and generated figures are included in this repository.
+This primary analysis was conducted in R/RStudio using R Markdown. The analysis code, rendered HTML report, and generated figures are included in this repository. There is also a supplementary exploratory mammography analysis in the form of a Excel worksheet.
 The EPA AirData files are large datasets and are therefore not stored directly in the repository. Instead, the R Markdown analysis automatically downloads and unzips the required 2018–2022 EPA datasets when they are not already present in the project's data/ directory.
 The breast cancer incidence dataset used in the analysis is included in the repository.
 This structure allows the analysis to be reproduced using the publicly available source data and the included R Markdown code.
@@ -117,13 +117,16 @@ pm25-breast-cancer-analysis/
 ├── data/
 │   └── incd.csv
 │
+├── supplementary_analysis/
+│   └── mammography_analysis.xlsx
+│
 └── figures/
-   ├── breast_cancer_pm25_scatter.png
-   ├── breast_cancer_pm25_scatter_labeled.png
-   ├── breast_cancer_california_map.png
-   ├── pm25_california_map.png
-   ├── breast_cancer_pm25_scatter_rural_urban.png
-   └── rural_urban_pm25.png
+    ├── breast_cancer_pm25_scatter.png
+    ├── breast_cancer_pm25_scatter_labeled.png
+    ├── breast_cancer_california_map.png
+    ├── pm25_california_map.png
+    ├── breast_cancer_pm25_scatter_rural_urban.png
+    └── rural_urban_pm25.png
    
 Tools
 
