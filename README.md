@@ -108,6 +108,7 @@ This structure allows the analysis to be reproduced using the publicly available
 
 Repository Structure
 
+```text
 pm25-breast-cancer-analysis/
 │
 ├── analysis/
@@ -127,6 +128,7 @@ pm25-breast-cancer-analysis/
     ├── pm25_california_map.png
     ├── breast_cancer_pm25_scatter_rural_urban.png
     └── rural_urban_pm25.png
+```
    
 Tools
 
