@@ -1,5 +1,7 @@
 # PM2.5 and Breast Cancer Incidence Across California Counties
 
+This independent data analysis evaluates the relationship between PM2.5 concentrations and breast cancer incidence within California counties, from 2018 to 2022.
+
 ## Introduction
 
 Among women, breast cancer is the most commonly diagnosed cancer and the leading cause of cancer-related death globally, and in the United States incidence rates increased by approximately 0.5% annually from 2010 to 2019.
@@ -101,7 +103,7 @@ Several limitations should be considered.
    
 ## Reproducibility
 
-This primary analysis was conducted in R/RStudio using R Markdown. The analysis code, rendered HTML report, and generated figures are included in this repository. There is also a supplementary exploratory mammography analysis in the form of an Excel worksheet.
+This primary analysis was independently conducted by me in R/RStudio using R Markdown. The analysis code, rendered HTML report, and generated figures are included in this repository. There is also my supplementary exploratory mammography analysis in the form of an Excel worksheet.
 The EPA AirData files are large datasets and are therefore not stored directly in the repository. Instead, the R Markdown analysis automatically downloads and unzips the required 2018–2022 EPA datasets when they are not already present in the project's data/ directory.
 The breast cancer incidence dataset used in the analysis is included in the repository.
 This structure allows the analysis to be reproduced using the publicly available source data and the included R Markdown code.
