@@ -17,6 +17,42 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE,
 ## R Markdown
 
 ```{r}
+# Download EPA AirData annual PM2.5 files if they are not already present
+
+years <- 2018:2022
+
+for (year in years) {
+  
+  csv_file <- paste0("../data/annual_conc_by_monitor_", year, ".csv")
+  zip_file <- paste0("../data/annual_conc_by_monitor_", year, ".zip")
+  
+  # Only download if the CSV is not already present
+  if (!file.exists(csv_file)) {
+    
+    download.file(
+      url = paste0(
+        "https://aqs.epa.gov/aqsweb/airdata/annual_conc_by_monitor_",
+        year,
+        ".zip"
+      ),
+      destfile = zip_file,
+      mode = "wb"
+    )
+    
+    # Unzip the downloaded file
+    unzip(
+      zipfile = zip_file,
+      exdir = "../data"
+    )
+    
+    # Delete the ZIP after extraction
+    file.remove(zip_file)
+  }
+}
+```
+
+
+```{r}
 ca_counties <- c("Alameda", "Alpine", "Amador", "Butte", "Calaveras", "Colusa",
                  "Contra Costa", "Del Norte", "El Dorado", "Fresno", "Glenn",
                  "Humboldt", "Imperial", "Inyo", "Kern", "Kings", "Lake",
